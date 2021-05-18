@@ -95,7 +95,7 @@ void aesCBC()
         catch(const CryptoPP::Exception& e)
         {
             cerr << e.what() << endl;
-            exit(1);
+            return;
         }
 
         try
@@ -124,7 +124,7 @@ void aesCBC()
         catch(const CryptoPP::Exception& e)
         {
             cerr << e.what() << endl;
-            exit(1);
+            return;
         }
         i++;
     }
@@ -168,7 +168,7 @@ void aesOFB()
         catch(const CryptoPP::Exception& e)
         {
             cerr << e.what() << endl;
-            exit(1);
+            return;
         }
 
         try
@@ -188,7 +188,7 @@ void aesOFB()
         catch(const CryptoPP::Exception& e)
         {
             cerr << e.what() << endl;
-            exit(1);
+            return;
         }
         i++;
     }
@@ -234,7 +234,7 @@ void aesCTR()
         catch(const CryptoPP::Exception& e)
         {
             cerr << e.what() << endl;
-            exit(1);
+            return;
         }
 
         try
@@ -254,7 +254,7 @@ void aesCTR()
         catch(const CryptoPP::Exception& e)
         {
             cerr << e.what() << endl;
-            exit(1);
+            return;
         }
 
         i++;
@@ -301,7 +301,7 @@ void aesECB()
         catch(const CryptoPP::Exception& e)
         {
             cerr << e.what() << endl;
-            exit(1);
+            return;
         }
 
         try
@@ -320,7 +320,7 @@ void aesECB()
         catch(const CryptoPP::Exception& e)
         {
             cerr << e.what() << endl;
-            exit(1);
+            return;
         }
         i++;
     }
@@ -365,7 +365,7 @@ void aesCFB()
         catch(const CryptoPP::Exception& e)
         {
             cerr << e.what() << endl;
-            exit(1);
+            return;
         }
 
         try
@@ -384,7 +384,7 @@ void aesCFB()
         catch(const CryptoPP::Exception& e)
         {
             cerr << e.what() << endl;
-            exit(1);
+            return;
         }
         i++;
     }
@@ -431,7 +431,7 @@ int start_s = clock();
         catch(const CryptoPP::Exception& e)
         {
             cerr << e.what() << endl;
-            exit(1);
+            return;
         }
 
         try
@@ -450,7 +450,7 @@ int start_s = clock();
         catch(const CryptoPP::Exception& e)
         {
             cerr << e.what() << endl;
-            exit(1);
+            return;
         }
 
         i++;
@@ -505,7 +505,7 @@ void aesXTS()
         catch( const CryptoPP::Exception& ex )
         {
             std::cerr << ex.what() << std::endl;
-            exit(1);
+            return;
         }
 
         try
@@ -525,7 +525,7 @@ void aesXTS()
         catch( const CryptoPP::Exception& ex )
         {
             std::cerr << ex.what() << std::endl;
-            exit(1);
+            return;
         }
         i++;
     }
@@ -572,8 +572,9 @@ int main(int argc, char* argv[])
 		) // HexEncoder
 	); // StringSource
 	cout << "iv: " << encoded << endl << endl;
-    int choice = 0;
-    while (true)
+    int choice = 1;
+    string pause;
+    while (choice != 0)
     {
         cout << "*** Please choose an option below ***" << endl;
         cout << "   0. Quit "<< endl;
@@ -590,8 +591,7 @@ int main(int argc, char* argv[])
         switch (choice)
         {
         case 0:
-            cout << "Good bye." << endl;
-            return 0;
+            break;
         case 1:
             aesCBC();
             break;
@@ -618,5 +618,7 @@ int main(int argc, char* argv[])
             break;
         }
     }
+    cout << "Good bye." << endl;
+    cin >> pause; 
 	return 0;
 }

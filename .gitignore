@@ -1,5 +1,11 @@
 
 ### C++ ###
+#ignore excutable file
+*
+!*.*
+
+
+.vscode/
 # Prerequisites
 *.d
 
@@ -42,9 +48,3 @@
 #Folder
 include/
 lib/
-
-#ignore excutable file
-*
-!*.*
-
-.vscode/
