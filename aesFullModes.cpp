@@ -146,29 +146,6 @@ void aesCBC()
 
 void aesOFB()
 {
-    // int start_s = clock();
-    // int i = 0;
-    // while (i<1000)
-    // {
-        // cipher.clear();
-        // recovered.clear();
-
-        //i++;
-    //     }
-    // int stop_s = clock();
-    // double etime = (stop_s - start_s)/double(CLOCKS_PER_SEC)*1000;
-    // cout << "plain text: " << plain << endl;
-    // // Pretty print
-    // encoded.clear();
-    // StringSource(cipher, true,
-    //     new HexEncoder(
-    //         new StringSink(encoded)
-    //     ) // HexEncoder
-    // ); // StringSource
-    // cout << "*** This is AES OFB mode ***" << endl;
-    // cout << "cipher text: " << encoded << endl;
-    // cout << "recovered text: " << recovered << endl;
-    // cout << "average execution times in 1000 times: " << etime << " ms" << endl;
 	int start_s = clock();
     int i = 0;
     while (i<1000)
