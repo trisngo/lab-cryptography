@@ -35,7 +35,7 @@ using CryptoPP::CBC_Mode;
 
 #include "secblock.h"
 using CryptoPP::SecByteBlock;
-
+using CryptoPP::byte;
 int main(int argc, char* argv[])
 {
 	AutoSeededRandomPool prng;
