@@ -1,12 +1,12 @@
 // g++ -g3 -ggdb -O0 -DDEBUG -I/usr/include/cryptopp Driver.cpp -o Driver.exe -lcryptopp -lpthread
 // g++ -g -O2 -DNDEBUG -I/usr/include/cryptopp Driver.cpp -o Driver.exe -lcryptopp -lpthread
 /* Work on files*/
-#include <cryptopp/files.h>
+#include "include/cryptopp/files.h"
 using CryptoPP::FileSource;
 using CryptoPP::FileSink;
 using CryptoPP::BufferedTransformation;
 
-#include "cryptopp/osrng.h"
+#include "include/cryptopp/osrng.h"
 using CryptoPP::AutoSeededRandomPool;
 using CryptoPP::byte;
 
@@ -23,23 +23,23 @@ using std::wstring;
 #include <cstdlib>
 using std::exit;
 
-#include "cryptopp/cryptlib.h"
+#include "include/cryptopp/cryptlib.h"
 using CryptoPP::Exception;
 
-#include "cryptopp/hex.h"
+#include "include/cryptopp/hex.h"
 using CryptoPP::HexEncoder;
 using CryptoPP::HexDecoder;
 
-#include "cryptopp/filters.h"
+#include "include/cryptopp/filters.h"
 using CryptoPP::StringSink;
 using CryptoPP::StringSource;
 using CryptoPP::StreamTransformationFilter;
 using CryptoPP::Redirector; // string to bytes
 
-#include "cryptopp/aes.h"
+#include "include/cryptopp/aes.h"
 using CryptoPP::AES;
 
-#include "cryptopp/ccm.h"
+#include "include/cryptopp/ccm.h"
 using CryptoPP::CBC_Mode;
 #include "assert.h"
 

@@ -558,8 +558,13 @@ void aesXTS()
 int main(int argc, char* argv[])
 {
     /* Only support input and output in form wstring (wcin, wcout)*/
-    _setmode(_fileno(stdin), _O_U16TEXT);
-    _setmode(_fileno(stdout), _O_U16TEXT);
+    #ifdef __linux__
+	setlocale(LC_ALL,"");
+	#elif _WIN32
+	_setmode(_fileno(stdin), _O_U16TEXT);
+ 	_setmode(_fileno(stdout), _O_U16TEXT);
+	#else
+	#endif
 	AutoSeededRandomPool prng;//tao chuoi bit random, dau ra la byte
 
 	prng.GenerateBlock(key, sizeof(key));
