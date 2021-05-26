@@ -572,7 +572,6 @@ int main(int argc, char* argv[])
 	prng.GenerateBlock(iv, sizeof(iv));
 
 	wcout << "*** First, please type input plaintext ***" << endl;
-	wcin.ignore();
 	getline(wcin,wplain); //co the ddoi thanh cai khac
     plain=wstring_to_string(wplain);
 	// Pretty print key
@@ -609,6 +608,7 @@ int main(int argc, char* argv[])
         wcout << "   11. 3TDES modes CBC "<< endl;
         wcout << "The number of options you choose is: ";
         wcin >> choice;
+        wcin.ignore();
         wcout << endl;
         switch (choice)
         {
