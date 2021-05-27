@@ -27,7 +27,7 @@ using std::exit;
 using CryptoPP::Exception;
 using CryptoPP::byte;
 using CryptoPP::BufferedTransformation;
-
+using CryptoPP::AuthenticatedSymmetricCipher;
 
 #include "include/cryptopp/hex.h"//convert string to hex
 using CryptoPP::HexEncoder;
@@ -42,12 +42,13 @@ using CryptoPP::Redirector; //string to bytes
 using CryptoPP::AuthenticatedEncryptionFilter;
 using CryptoPP::AuthenticatedDecryptionFilter;
 
-
 #include "include/cryptopp/aes.h"
 using CryptoPP::AES;
 
 #include "include/cryptopp/modes.h"
 #include "include/cryptopp/ccm.h"
+using CryptoPP::CCM;
+
 using CryptoPP::CBC_Mode;
 using CryptoPP::OFB_Mode;
 using CryptoPP::CTR_Mode;
@@ -97,6 +98,7 @@ wstring wplain;
 string plain, cipher, encoded, recovered;
 byte key[32];
 byte iv[AES::BLOCKSIZE];
+byte iv_ccm[13];
 
 void aesCBC()
 {
@@ -555,6 +557,101 @@ void aesXTS()
     wcout << "average execution times in 1000 times: " << etime << " ms" << endl << endl;
 }
 
+void aesCCM()
+{
+
+    // { 4, 6, 8, 10, 12, 14, 16 }
+    const int TAG_SIZE = 8;
+
+    int start_s = clock();
+    int i = 0;
+    while (i<1000)
+    {
+        cipher.clear();
+        recovered.clear();
+
+        try
+        {
+            CCM< AES, TAG_SIZE >::Encryption e;
+            e.SetKeyWithIV( key, sizeof(key), iv_ccm, sizeof(iv_ccm) );
+            e.SpecifyDataLengths( 0, plain.size(), 0 );
+
+            StringSource( plain, true,
+                new AuthenticatedEncryptionFilter( e,
+                    new StringSink( cipher )
+                ) // AuthenticatedEncryptionFilter
+            ); // StringSource
+        }
+        catch( CryptoPP::InvalidArgument& e )
+        {
+            cerr << "Caught InvalidArgument..." << endl;
+            cerr << e.what() << endl;
+            cerr << endl;
+            return;
+        }
+        catch( CryptoPP::Exception& e )
+        {
+            cerr << "Caught Exception..." << endl;
+            cerr << e.what() << endl;
+            cerr << endl;
+            return;
+        }
+
+        try
+        {
+            CCM< AES, TAG_SIZE >::Decryption d;
+            d.SetKeyWithIV( key, sizeof(key), iv_ccm, sizeof(iv_ccm) );
+            d.SpecifyDataLengths( 0, cipher.size()-TAG_SIZE, 0 );
+
+            AuthenticatedDecryptionFilter df( d,
+                new StringSink( recovered )
+            ); // AuthenticatedDecryptionFilter
+
+            StringSource( cipher, true,
+                new Redirector( df /*, PASS_EVERYTHING */ )
+            ); // StringSource
+
+        }
+        catch( CryptoPP::HashVerificationFilter::HashVerificationFailed& e )
+        {
+            cerr << "Caught HashVerificationFailed..." << endl;
+            cerr << e.what() << endl;
+            cerr << endl;
+            return;
+        }
+        catch( CryptoPP::InvalidArgument& e )
+        {
+            cerr << "Caught InvalidArgument..." << endl;
+            cerr << e.what() << endl;
+            cerr << endl;
+            return;
+        }
+        catch( CryptoPP::Exception& e )
+        {
+            cerr << "Caught Exception..." << endl;
+            cerr << e.what() << endl;
+            cerr << endl;
+            return;
+        }
+        i++;
+    }
+    int stop_s = clock();
+    double etime = (stop_s - start_s)/double(CLOCKS_PER_SEC)*1000;
+    wcout << "*** This is AES CCM mode ***" << endl;
+    wcout << "plain text: " << wplain << endl;
+    // Pretty print
+    encoded.clear();
+    StringSource(cipher, true,
+        new HexEncoder(
+            new StringSink(encoded)
+        ) // HexEncoder
+    ); // StringSource
+    wcout << "cipher text: " << string_to_wstring(encoded) << endl;
+    wcout << "recovered text: " << string_to_wstring(recovered) << endl;
+    wcout << "average execution times in 1000 times: " << etime << " ms" << endl << endl;
+}
+
+
 int main(int argc, char* argv[])
 {
     /* Only support input and output in form wstring (wcin, wcout)*/
@@ -565,80 +662,95 @@ int main(int argc, char* argv[])
  	_setmode(_fileno(stdout), _O_U16TEXT);
 	#else
 	#endif
-	AutoSeededRandomPool prng;//tao chuoi bit random, dau ra la byte
-
-	prng.GenerateBlock(key, sizeof(key));
-
-	prng.GenerateBlock(iv, sizeof(iv));
 
 	wcout << "*** First, please type input plaintext ***" << endl;
-	getline(wcin,wplain); //co the ddoi thanh cai khac
+	getline(wcin,wplain);
     plain=wstring_to_string(wplain);
-	// Pretty print key
-	encoded.clear();
+	
+    int choice = 1;
+    wcout << "*** Please choose an option below ***" << endl;
+    wcout << "   0. Quit "<< endl;
+    wcout << "   1. AES modes CBC "<< endl;
+    wcout << "   2. AES modes OFB "<< endl;
+    wcout << "   3. AES modes CTR "<< endl;
+    wcout << "   4. AES modes ECB "<< endl;
+    wcout << "   5. AES modes CFB "<< endl;
+    wcout << "   6. AES modes GCM "<< endl;
+    wcout << "   7. AES modes XTS "<< endl;
+    wcout << "   8. AES modes CCM "<< endl;
+    wcout << "   9. DES modes CBC "<< endl;
+    wcout << "   10. 2TDES modes CBC "<< endl;
+    wcout << "   11. 3TDES modes CBC "<< endl;
+    wcout << "The option number you choose is: ";
+    wcin >> choice;
+    wcin.ignore();
+    wcout << endl;
+
+    AutoSeededRandomPool prng;//tao chuoi bit random, dau ra la byte
+
+    prng.GenerateBlock(key, sizeof(key));
+    encoded.clear();
 	StringSource(key, sizeof(key), true,
 		new HexEncoder(
 			new StringSink(encoded)
 		) // HexEncoder
 	); // StringSource
-	wcout << "key: " << string_to_wstring(encoded) << endl;
-	// Pretty print iv
-	encoded.clear();
-	StringSource(iv, sizeof(iv), true,
-		new HexEncoder(
-			new StringSink(encoded)
-		) // HexEncoder
-	); // StringSource
-	wcout << "iv: " << string_to_wstring(encoded) << endl;
-    int choice = 1;
-    while (choice != 0)
+	wcout << sizeof(key) <<"-bit key: " << string_to_wstring(encoded) << endl;
+    if(choice == 8)
     {
-        wcout << "*** Please choose an option below ***" << endl;
-        wcout << "   0. Quit "<< endl;
-        wcout << "   1. AES modes CBC "<< endl;
-        wcout << "   2. AES modes OFB "<< endl;
-        wcout << "   3. AES modes CTR "<< endl;
-        wcout << "   4. AES modes ECB "<< endl;
-        wcout << "   5. AES modes CFB "<< endl;
-        wcout << "   6. AES modes GCM "<< endl;
-        wcout << "   7. AES modes XTS "<< endl;
-        wcout << "   8. AES modes CCM "<< endl;
-        wcout << "   9. DES modes CBC "<< endl;
-        wcout << "   10. 2TDES modes CBC "<< endl;
-        wcout << "   11. 3TDES modes CBC "<< endl;
-        wcout << "The number of options you choose is: ";
-        wcin >> choice;
-        wcin.ignore();
-        wcout << endl;
-        switch (choice)
-        {
-        case 0:
-            break;
-        case 1:
-            aesCBC();
-            break;
-        case 2:
-            aesOFB();
-            break;
-        case 3:
-            aesCTR();
-            break;
-        case 4:
-            aesECB();
-            break;
-        case 5:
-            aesCFB();
-            break;
-        case 6:
-            aesGCM();
-            break;
-        case 7:
-            aesXTS();
-            break;
-        default:
-            wcout << "!!! You must choose a number of Algorithm option showing on the screen" << endl;
-            break;
-        }
+        wcout << "Maximum Initialization Vector for CCM mode is 13bit" << endl;
+        prng.GenerateBlock(iv_ccm, 13);
+        // Pretty print iv
+        encoded.clear();
+        StringSource(iv_ccm, sizeof(iv_ccm), true,
+            new HexEncoder(
+                new StringSink(encoded)
+            ) // HexEncoder
+        ); // StringSource
+        wcout << sizeof(iv_ccm) <<"-bit iv: " << string_to_wstring(encoded) << endl;
+    }
+    else{
+	    prng.GenerateBlock(iv, sizeof(iv));
+        // Pretty print iv
+        encoded.clear();
+        StringSource(iv, sizeof(iv), true,
+            new HexEncoder(
+                new StringSink(encoded)
+            ) // HexEncoder
+        ); // StringSource
+        wcout << sizeof(iv) <<"-bit iv: " << string_to_wstring(encoded) << endl;
+    }
+    switch (choice)
+    {
+    case 0:
+        break;
+    case 1:
+        aesCBC();
+        break;
+    case 2:
+        aesOFB();
+        break;
+    case 3:
+        aesCTR();
+        break;
+    case 4:
+        aesECB();
+        break;
+    case 5:
+        aesCFB();
+        break;
+    case 6:
+        aesGCM();
+        break;
+    case 7:
+        aesXTS();
+        break;
+    case 8:
+        aesCCM();
+        break;
+    default:
+        wcout << "!!! You must choose a number of Algorithm option showing on the screen" << endl;
+        break;
     }
     wcout << "Good bye." << endl;
 	return 0;
