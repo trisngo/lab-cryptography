@@ -5,13 +5,14 @@
 using CryptoPP::AutoSeededRandomPool;
 
 #include <iostream>
-using std::cout;
-using std::cin;
+using std::wcout;
+using std::wcin;
 using std::cerr;
 using std::endl;
 
 #include <string>
 using std::string;
+using std::wstring;
 
 #include <cstdlib>
 using std::exit;
@@ -27,6 +28,7 @@ using CryptoPP::HexDecoder;
 using CryptoPP::StringSink;
 using CryptoPP::StringSource;
 using CryptoPP::StreamTransformationFilter;
+using CryptoPP::Redirector; //string to bytes
 
 #include "include/cryptopp/des.h"
 using CryptoPP::DES;
@@ -41,6 +43,35 @@ using CryptoPP::SecByteBlock;
 
 using CryptoPP::byte;
 
+#include "assert.h"
+#include <ctime>
+
+/* Set _setmode()*/ 
+#ifdef _WIN32
+    #include <io.h>
+#elif __linux__
+    #include <inttypes.h>
+    #include <unistd.h>
+    #define __int64 int64_t
+    #define _close close
+    #define _read read
+    #define _lseek64 lseek64
+    #define _O_RDONLY O_RDONLY
+    #define _open open
+    #define _lseeki64 lseek64
+    #define _lseek lseek
+    #define stricmp strcasecmp
+#endif
+#include <fcntl.h>
+/* Convert string*/ 
+#include <locale>
+using std::wstring_convert;
+#include <codecvt>
+using  std::codecvt_utf8;
+
+wstring string_to_wstring (const std::string& str);
+string wstring_to_string (const std::wstring& str);
+
 SecByteBlock key(DES::DEFAULT_KEYLENGTH);
 
 SecByteBlock key_16(DES_EDE2::DEFAULT_KEYLENGTH);
@@ -49,6 +80,7 @@ SecByteBlock key_24(DES_EDE3::DEFAULT_KEYLENGTH);
 
 byte iv[DES::BLOCKSIZE];
 
+wstring wplain;
 string plain, cipher, encoded, recovered;
 
 void des()
@@ -64,9 +96,6 @@ void des()
             CBC_Mode< DES >::Encryption e;
             e.SetKeyWithIV(key, key.size(), iv);
 
-            // The StreamTransformationFilter adds padding
-            //  as required. ECB and CBC Mode must be padded
-            //  to the block size of the cipher.
             StringSource(plain, true, 
                 new StreamTransformationFilter(e,
                     new StringSink(cipher)
@@ -84,8 +113,6 @@ void des()
             CBC_Mode< DES >::Decryption d;
             d.SetKeyWithIV(key, key.size(), iv);
 
-            // The StreamTransformationFilter removes
-            //  padding as required.
             StringSource s(cipher, true, 
                 new StreamTransformationFilter(d,
                     new StringSink(recovered)
@@ -101,8 +128,8 @@ void des()
     }
     int stop_s = clock();
     double etime = (stop_s - start_s)/double(CLOCKS_PER_SEC)*1000;
-    cout << "*** This is DES ***" << endl;
-    cout << "plain text: " << plain << endl;
+    wcout << "*** This is DES ***" << endl;
+    wcout << "plain text: " << wplain << endl;
     // Pretty print
     encoded.clear();
     StringSource(cipher, true,
@@ -110,9 +137,9 @@ void des()
             new StringSink(encoded)
         ) // HexEncoder
     ); // StringSource
-    cout << "cipher text: " << encoded << endl;
-    cout << "recovered text: " << recovered << endl;
-    cout << "average execution times in 1000 times: " << etime << " ms" << endl << endl;
+    wcout << "cipher text: " << string_to_wstring(encoded) << endl;
+    wcout << "recovered text: " << string_to_wstring(recovered) << endl;
+    wcout << "average execution times in 1000 times: " << etime << " ms" << endl << endl;
 }
 
 void dou_tdes()
@@ -128,9 +155,6 @@ void dou_tdes()
 		CBC_Mode< DES_EDE2 >::Encryption e;
 		e.SetKeyWithIV(key_16, key_16.size(), iv);
 
-		// The StreamTransformationFilter adds padding
-		//  as required. ECB and CBC Mode must be padded
-		//  to the block size of the cipher.
 		StringSource(plain, true, 
 			new StreamTransformationFilter(e,
 				new StringSink(cipher)
@@ -166,8 +190,8 @@ void dou_tdes()
     }
     int stop_s = clock();
     double etime = (stop_s - start_s)/double(CLOCKS_PER_SEC)*1000;
-    cout << "*** This is 2TDES ***" << endl;
-    cout << "plain text: " << plain << endl;
+    wcout << "*** This is 2TDES ***" << endl;
+    wcout << "plain text: " << wplain << endl;
     // Pretty print
     encoded.clear();
     StringSource(cipher, true,
@@ -175,9 +199,9 @@ void dou_tdes()
             new StringSink(encoded)
         ) // HexEncoder
     ); // StringSource
-    cout << "cipher text: " << encoded << endl;
-    cout << "recovered text: " << recovered << endl;
-    cout << "average execution times in 1000 times: " << etime << " ms" << endl << endl;
+    wcout << "cipher text: " << string_to_wstring(encoded) << endl;
+    wcout << "recovered text: " << string_to_wstring(recovered) << endl;
+    wcout << "average execution times in 1000 times: " << etime << " ms" << endl << endl;
 }
 
 void tri_tdes()
@@ -194,9 +218,6 @@ void tri_tdes()
             CBC_Mode< DES_EDE3 >::Encryption e;
             e.SetKeyWithIV(key_24, key_24.size(), iv);
 
-            // The StreamTransformationFilter adds padding
-            //  as required. ECB and CBC Mode must be padded
-            //  to the block size of the cipher.
             StringSource(plain, true, 
                 new StreamTransformationFilter(e,
                     new StringSink(cipher)
@@ -214,8 +235,6 @@ void tri_tdes()
             CBC_Mode< DES_EDE3 >::Decryption d;
             d.SetKeyWithIV(key_24, key_24.size(), iv);
 
-            // The StreamTransformationFilter removes
-            //  padding as required.
             StringSource s(cipher, true, 
                 new StreamTransformationFilter(d,
                     new StringSink(recovered)
@@ -231,8 +250,8 @@ void tri_tdes()
     }
     int stop_s = clock();
     double etime = (stop_s - start_s)/double(CLOCKS_PER_SEC)*1000;
-    cout << "*** This is 3TDES ***" << endl;
-    cout << "plain text: " << plain << endl;
+    wcout << "*** This is 3TDES ***" << endl;
+    wcout << "plain text: " << wplain << endl;
     // Pretty print
     encoded.clear();
     StringSource(cipher, true,
@@ -240,45 +259,56 @@ void tri_tdes()
             new StringSink(encoded)
         ) // HexEncoder
     ); // StringSource
-    cout << "cipher text: " << encoded << endl;
-    cout << "recovered text: " << recovered << endl;
-    cout << "average execution times in 1000 times: " << etime << " ms" << endl << endl;
+    wcout << "cipher text: " << string_to_wstring(encoded) << endl;
+    wcout << "recovered text: " << string_to_wstring(recovered) << endl;
+    wcout << "average execution times in 1000 times: " << etime << " ms" << endl << endl;
 }
 
 int main(int argc, char* argv[])
 {
-    
+    /* Only support input and output in form wstring (wcin, wcout)*/
+    #ifdef __linux__
+	setlocale(LC_ALL,"");
+	#elif _WIN32
+	_setmode(_fileno(stdin), _O_U16TEXT);
+ 	_setmode(_fileno(stdout), _O_U16TEXT);
+	#else
+	#endif
+
     AutoSeededRandomPool prng;
 
     prng.GenerateBlock(key, key.size());
+    prng.GenerateBlock(key_16, key_16.size());
+    prng.GenerateBlock(key_24, key_24.size());
     prng.GenerateBlock(iv, sizeof(iv));
-    cout << "*** First, please type input plaintext ***" << endl;
-	getline(cin, plain);//co the ddoi thanh cai khac
+    wcout << "*** First, please type input plaintext ***" << endl;
+	getline(wcin, wplain);
+    plain=wstring_to_string(wplain);
 
 	// Pretty print key
 	encoded.clear();
-	StringSource(key, sizeof(key), true,
+	StringSource(key, key.size(), true,
 		new HexEncoder(
 			new StringSink(encoded)
 		) // HexEncoder
 	); // StringSource
-	cout << "key 8 bits: " << encoded << endl;
+	wcout << "key 8 bits: " << string_to_wstring(encoded) << endl;
 
     encoded.clear();
-	StringSource(key_16, sizeof(key_16), true,
+	StringSource(key_16, key_16.size(), true,
 		new HexEncoder(
 			new StringSink(encoded)
 		) // HexEncoder
 	); // StringSource
-	cout << "key 16 bits: " << encoded << endl;
+	wcout << "key 16 bits: " << string_to_wstring(encoded) << endl;
 
     encoded.clear();
-	StringSource(key_24, sizeof(key_24), true,
+	StringSource(key_24, key_24.size(), true,
 		new HexEncoder(
 			new StringSink(encoded)
 		) // HexEncoder
 	); // StringSource
-	cout << "key 24 bits: " << encoded << endl;
+	wcout << "key 24 bits: " << string_to_wstring(encoded) << endl;
 
 	// Pretty print iv
 	encoded.clear();
@@ -287,19 +317,18 @@ int main(int argc, char* argv[])
 			new StringSink(encoded)
 		) // HexEncoder
 	); // StringSource
-	cout << "iv: " << encoded << endl << endl;
+	wcout << "iv: " << string_to_wstring(encoded) << endl << endl;
     int choice = 1;
-    string pause;
     while (choice != 0)
     {
-        cout << "*** Please choose an option below ***" << endl;
-        cout << "   0. Quit "<< endl;
-        cout << "   1. DES modes CBC(key 8 bits) "<< endl;
-        cout << "   2. 2TDES modes CBC(key 16 bits) "<< endl;
-        cout << "   3. 3TDES modes CBC(key 24 bits) "<< endl;
-        cout << "The number of options you choose is: ";
-        cin >> choice;
-        cout << endl;
+        wcout << "*** Please choose an option below ***" << endl;
+        wcout << "   0. Quit "<< endl;
+        wcout << "   1. DES modes CBC(key 8 bits) "<< endl;
+        wcout << "   2. 2TDES modes CBC(key 16 bits) "<< endl;
+        wcout << "   3. 3TDES modes CBC(key 24 bits) "<< endl;
+        wcout << "The number of options you choose is: ";
+        wcin >> choice;
+        wcout << endl;
         switch (choice)
         {
         case 0:
@@ -314,13 +343,23 @@ int main(int argc, char* argv[])
             tri_tdes();
             break;
         default:
-            cout << "!!! You must choose a number of Algorithm option showing on the screen" << endl;
+            wcout << "!!! You must choose a number of Algorithm option showing on the screen" << endl;
             break;
         }
     }
-    cout << "Good bye." << endl;
-    cin >> pause;
-
+    wcout << "Good bye." << endl;
 	return 0;
 }
+/* convert string to wstring */
+wstring string_to_wstring (const std::string& str)
+{
+    wstring_convert<codecvt_utf8<wchar_t>> towstring;
+    return towstring.from_bytes(str);
+}
 
+/* convert ưstring to string */
+string wstring_to_string (const std::wstring& str)
+{
+    wstring_convert<codecvt_utf8<wchar_t>> tostring;
+    return tostring.to_bytes(str);
+}
