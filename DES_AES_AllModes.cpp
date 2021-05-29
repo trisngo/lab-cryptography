@@ -97,9 +97,13 @@ using CryptoPP::FileSource;
 using std::wstring_convert;
 #include <codecvt>
 using  std::codecvt_utf8;
+#include <sstream>
+using std::ostringstream;
 
+/* Functions def*/
 wstring string_to_wstring (const std::string& str);
 string wstring_to_string (const std::wstring& str);
+wstring integer_to_wstring(const CryptoPP::Integer& t);
 
 wstring wplain;
 string plain, cipher, encoded, recovered;
@@ -902,10 +906,10 @@ void inputKeyFromScreen(int choice)
 {
     wstring wkey;
     string strkey;
-
     if(choice == 9)
     {
         do{
+            wcin.ignore();
             wcout << "Type your Secret key 8-bytes: " << endl;
             getline(wcin, wkey);
             strkey = wstring_to_string(wkey);
@@ -916,6 +920,7 @@ void inputKeyFromScreen(int choice)
     else if(choice == 10)
     {
         do{
+            wcin.ignore();
             wcout << "Type your Secret key 16-bytes: " << endl;
             getline(wcin, wkey);
             strkey = wstring_to_string(wkey);
@@ -926,6 +931,7 @@ void inputKeyFromScreen(int choice)
     else if(choice == 11)
     {
         do{
+            wcin.ignore();
             wcout << "Type your Secret key 24-bytes: " << endl;
             getline(wcin, wkey);
             strkey = wstring_to_string(wkey);
@@ -935,6 +941,7 @@ void inputKeyFromScreen(int choice)
     }
     else{
         do{
+            wcin.ignore();
             wcout << "Type your Secret key 32-bytes: " << endl;
             getline(wcin, wkey);
             strkey = wstring_to_string(wkey);
@@ -964,6 +971,7 @@ void inputIVFromScreen(int choice)
     if(choice == 8)
     {
         do{
+            wcin.ignore();
             wcout << "Maximum Initialization Vector for CCM mode is 13bytes. \nType your Initial vector 13-bytes: " << endl;
             getline(wcin, wiv);
             striv = wstring_to_string(wiv);
@@ -973,6 +981,7 @@ void inputIVFromScreen(int choice)
     }
     else{
         do{
+            wcin.ignore();
             wcout << "Type your Initial vector 16-bytes: " << endl;
             getline(wcin, wiv);
             striv = wstring_to_string(wiv);
@@ -1003,6 +1012,7 @@ int inputKeyFromFile(int choice)
     try{
         if(choice == 9)
         {
+            wcin.ignore();
             wcout << "Please type 8-bytes key's file name you want to import - [filename].key: " << endl;
             getline(wcin, wfileName);
             fileName = wstring_to_string(wfileName);
@@ -1011,6 +1021,7 @@ int inputKeyFromFile(int choice)
         }
         else if(choice == 10)
         {
+            wcin.ignore();
             wcout << "Please type 16-bytes key's file name you want to import - [filename].key: " << endl;
             getline(wcin, wfileName);
             fileName = wstring_to_string(wfileName);
@@ -1019,6 +1030,7 @@ int inputKeyFromFile(int choice)
         }
         else if(choice == 11)
         {
+            wcin.ignore();
             wcout << "Please type 24-bytes key's file name you want to import - [filename].key: " << endl;
             getline(wcin, wfileName);
             fileName = wstring_to_string(wfileName);
@@ -1026,6 +1038,7 @@ int inputKeyFromFile(int choice)
             sizeKey = 24;
         }
         else{
+            wcin.ignore();
             wcout << "Please type 32-bytes key's file name you want to import - [filename].key: " << endl;
             getline(wcin, wfileName);
             fileName = wstring_to_string(wfileName);
@@ -1066,6 +1079,7 @@ int inputIVFromFile(int choice)
     try{
         if(choice == 8)
         {
+            wcin.ignore();
             wcout << "Maximum Initialization Vector for CCM mode is 13bytes. \nPlease type iv's file name you want to import - [filename].key: " << endl;
             getline(wcin, wfileName);
             fileName = wstring_to_string(wfileName);
@@ -1073,6 +1087,7 @@ int inputIVFromFile(int choice)
             sizeIV = 13;
         }
         else{
+            wcin.ignore();
             wcout << "Please type iv's file name you want to import - [filename].key: " << endl;
             getline(wcin, wfileName);
             fileName = wstring_to_string(wfileName);
@@ -1173,6 +1188,7 @@ int main(int argc, char* argv[])
 
 	wcout << "*** First, please type input plaintext ***" << endl;
 	getline(wcin,wplain);
+    wcin.ignore();
     plain=wstring_to_string(wplain);
 	
     while(true)
@@ -1253,6 +1269,7 @@ int main(int argc, char* argv[])
         wstring wstrQuit;
         wcout << "Do you want to quit?(y/n)";
         wcin >> wstrQuit;
+        wcin.ignore();
         strQuit = wstring_to_string(wstrQuit);
         if(strQuit == "y")
             break;
@@ -1272,4 +1289,16 @@ string wstring_to_string (const std::wstring& str)
 {
     wstring_convert<codecvt_utf8<wchar_t>> tostring;
     return tostring.to_bytes(str);
+}
+
+/* Convert interger to wstring*/
+wstring integer_to_wstring(const CryptoPP::Integer &t)
+{
+    std::ostringstream oss;
+    oss.str("");
+    oss.clear();
+    oss << t;
+    std::string encoded(oss.str());
+    std::wstring_convert<codecvt_utf8<wchar_t>> towstring;
+    return towstring.from_bytes(encoded);
 }
