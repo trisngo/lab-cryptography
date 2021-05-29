@@ -11,7 +11,7 @@
 using CryptoPP::AutoSeededRandomPool;
 
 #include <iostream>
-using std::wcin;//dung gi call len de giam dung luong cung nhu bugs
+using std::wcin;
 using std::wcout;
 using std::cerr;
 using std::endl;
@@ -45,15 +45,21 @@ using CryptoPP::AuthenticatedDecryptionFilter;
 #include "include/cryptopp/aes.h"
 using CryptoPP::AES;
 
+#include "include/cryptopp/des.h"
+using CryptoPP::DES;
+using CryptoPP::DES_EDE2;
+using CryptoPP::DES_EDE3;
+
 #include "include/cryptopp/modes.h"
-#include "include/cryptopp/ccm.h"
-using CryptoPP::CCM;
 
 using CryptoPP::CBC_Mode;
 using CryptoPP::OFB_Mode;
 using CryptoPP::CTR_Mode;
 using CryptoPP::ECB_Mode;
 using CryptoPP::CFB_Mode;
+
+#include "include/cryptopp/ccm.h"
+using CryptoPP::CCM;
 
 #include "include/cryptopp/gcm.h"
 using CryptoPP::GCM;
@@ -91,14 +97,16 @@ using CryptoPP::FileSource;
 using std::wstring_convert;
 #include <codecvt>
 using  std::codecvt_utf8;
+
 wstring string_to_wstring (const std::string& str);
 string wstring_to_string (const std::wstring& str);
 
 wstring wplain;
 string plain, cipher, encoded, recovered;
-byte key[32];
-byte iv[AES::BLOCKSIZE];
-byte iv_ccm[13];
+byte* key;
+byte* key_des;
+byte* iv;
+int sizeIV = 0, sizeKey = 0;
 
 void aesCBC()
 {
@@ -111,7 +119,7 @@ void aesCBC()
         try
         {
             CBC_Mode< AES >::Encryption e;
-            e.SetKeyWithIV(key, sizeof(key), iv);
+            e.SetKeyWithIV(key, sizeKey, iv);
 
             // The StreamTransformationFilter removes
             //  padding as required.
@@ -130,7 +138,7 @@ void aesCBC()
         try
         {
             CBC_Mode< AES >::Decryption d;
-            d.SetKeyWithIV(key, sizeof(key), iv);
+            d.SetKeyWithIV(key, sizeKey, iv);
 
             // The StreamTransformationFilter removes
             //  padding as required.
@@ -174,7 +182,7 @@ void aesOFB()
         try
         {
             OFB_Mode< AES >::Encryption e;//goi ham encryp ofb o aes, dat ham nay la d
-            e.SetKeyWithIV(key, sizeof(key), iv);
+            e.SetKeyWithIV(key, sizeKey, iv);
 
             // OFB mode must not use padding. Specifying
             //  a scheme will result in an exception
@@ -193,7 +201,7 @@ void aesOFB()
         try
         {
             OFB_Mode< AES >::Decryption d;
-            d.SetKeyWithIV(key, sizeof(key), iv);
+            d.SetKeyWithIV(key, sizeKey, iv);
 
             // The StreamTransformationFilter removes
             //  padding as required.
@@ -239,7 +247,7 @@ void aesCTR()
         try
         {
             CTR_Mode< AES >::Encryption e;
-            e.SetKeyWithIV(key, sizeof(key), iv);
+            e.SetKeyWithIV(key, sizeKey, iv);
 
             // The StreamTransformationFilter adds padding
             //  as required. ECB and CBC Mode must be padded
@@ -259,7 +267,7 @@ void aesCTR()
         try
         {
             CTR_Mode< AES >::Decryption d;
-            d.SetKeyWithIV(key, sizeof(key), iv);
+            d.SetKeyWithIV(key, sizeKey, iv);
 
             // The StreamTransformationFilter removes
             //  padding as required.
@@ -306,7 +314,7 @@ void aesECB()
         try
         {
             ECB_Mode< AES >::Encryption e;
-            e.SetKey(key, sizeof(key));
+            e.SetKey(key, sizeKey);
 
             // The StreamTransformationFilter adds padding
             //  as required. ECB and CBC Mode must be padded
@@ -326,7 +334,7 @@ void aesECB()
         try
         {
             ECB_Mode< AES >::Decryption d;
-            d.SetKey(key, sizeof(key));
+            d.SetKey(key, sizeKey);
 
             // The StreamTransformationFilter removes
             //  padding as required.
@@ -371,7 +379,7 @@ void aesCFB()
         try
         {
             CFB_Mode< AES >::Encryption e;
-            e.SetKeyWithIV(key, sizeof(key), iv);
+            e.SetKeyWithIV(key, sizeKey, iv);
 
             // CFB mode must not use padding. Specifying
             //  a scheme will result in an exception
@@ -390,7 +398,7 @@ void aesCFB()
         try
         {
             CFB_Mode< AES >::Decryption d;
-            d.SetKeyWithIV(key, sizeof(key), iv);
+            d.SetKeyWithIV(key, sizeKey, iv);
 
             // The StreamTransformationFilter removes
             //  padding as required.
@@ -425,7 +433,7 @@ void aesCFB()
 
 void aesGCM()
 {
-int start_s = clock();
+    int start_s = clock();
     int i = 0;
     while (i<1000)
     {
@@ -436,7 +444,7 @@ int start_s = clock();
         {
 
             GCM< AES >::Encryption e;
-            e.SetKeyWithIV(key, sizeof(key), iv, sizeof(iv));
+            e.SetKeyWithIV(key, sizeKey, iv, sizeIV);
 
             // The StreamTransformationFilter adds padding
             //  as required. GCM and CBC Mode must be padded
@@ -456,7 +464,7 @@ int start_s = clock();
         try
         {
             GCM< AES >::Decryption d;
-            d.SetKeyWithIV(key, sizeof(key), iv, sizeof(iv));
+            d.SetKeyWithIV(key, sizeKey, iv, sizeIV);
 
             // The StreamTransformationFilter removes
             //  padding as required.
@@ -502,7 +510,7 @@ void aesXTS()
         try
         {
             XTS_Mode< AES >::Encryption enc;
-            enc.SetKeyWithIV( key, sizeof(key), iv );
+            enc.SetKeyWithIV( key, sizeKey, iv );
 
             // The StreamTransformationFilter adds padding
             //  as requiredec. ECB and XTS Mode must be padded
@@ -523,7 +531,7 @@ void aesXTS()
         try
         {
             XTS_Mode< AES >::Decryption dec;
-            dec.SetKeyWithIV( key, sizeof(key), iv );
+            dec.SetKeyWithIV( key, sizeKey, iv );
 
             // The StreamTransformationFilter removes
             //  padding as requiredec.
@@ -562,7 +570,7 @@ void aesCCM()
 
     // { 4, 6, 8, 10, 12, 14, 16 }
     const int TAG_SIZE = 8;
-
+    
     int start_s = clock();
     int i = 0;
     while (i<1000)
@@ -573,7 +581,7 @@ void aesCCM()
         try
         {
             CCM< AES, TAG_SIZE >::Encryption e;
-            e.SetKeyWithIV( key, sizeof(key), iv_ccm, sizeof(iv_ccm) );
+            e.SetKeyWithIV( key, sizeKey, iv, sizeIV );
             e.SpecifyDataLengths( 0, plain.size(), 0 );
 
             StringSource( plain, true,
@@ -600,7 +608,7 @@ void aesCCM()
         try
         {
             CCM< AES, TAG_SIZE >::Decryption d;
-            d.SetKeyWithIV( key, sizeof(key), iv_ccm, sizeof(iv_ccm) );
+            d.SetKeyWithIV( key, sizeKey, iv, sizeIV );
             d.SpecifyDataLengths( 0, cipher.size()-TAG_SIZE, 0 );
 
             AuthenticatedDecryptionFilter df( d,
@@ -652,6 +660,506 @@ void aesCCM()
 }
 
 
+void des()
+{
+    int start_s = clock();
+    int i = 0;
+    while (i<=1000)
+    {
+        cipher.clear();
+        recovered.clear();
+        try
+        {
+            CBC_Mode< DES >::Encryption e;
+            e.SetKeyWithIV(key, sizeKey, iv);
+
+            StringSource(plain, true, 
+                new StreamTransformationFilter(e,
+                    new StringSink(cipher)
+                ) // StreamTransformationFilter      
+            ); // StringSource
+        }
+        catch(const CryptoPP::Exception& e)
+        {
+            cerr << e.what() << endl;
+            return;
+        }
+
+        try
+        {
+            CBC_Mode< DES >::Decryption d;
+            d.SetKeyWithIV(key, sizeKey, iv);
+
+            StringSource s(cipher, true, 
+                new StreamTransformationFilter(d,
+                    new StringSink(recovered)
+                ) // StreamTransformationFilter
+            ); // StringSource
+        }
+        catch(const CryptoPP::Exception& e)
+        {
+            cerr << e.what() << endl;
+            return;
+        }
+        i++;
+    }
+    int stop_s = clock();
+    double etime = (stop_s - start_s)/double(CLOCKS_PER_SEC)*1000;
+    wcout << "*** This is DES ***" << endl;
+    wcout << "plain text: " << wplain << endl;
+    // Pretty print
+    encoded.clear();
+    StringSource(cipher, true,
+        new HexEncoder(
+            new StringSink(encoded)
+        ) // HexEncoder
+    ); // StringSource
+    wcout << "cipher text: " << string_to_wstring(encoded) << endl;
+    wcout << "recovered text: " << string_to_wstring(recovered) << endl;
+    wcout << "average execution times in 1000 times: " << etime << " ms" << endl << endl;
+}
+
+void dou_tdes()
+{
+    int start_s = clock();
+    int i = 0;
+    while (i<=1000)
+    {
+        cipher.clear();
+        recovered.clear();
+        try
+	    {
+		CBC_Mode< DES_EDE2 >::Encryption e;
+		e.SetKeyWithIV(key, sizeKey, iv);
+
+		StringSource(plain, true, 
+			new StreamTransformationFilter(e,
+				new StringSink(cipher)
+			) // StreamTransformationFilter      
+		); // StringSource
+	    }
+        catch(const CryptoPP::Exception& e)
+        {
+            cerr << e.what() << endl;
+            return;
+        }
+
+        try
+        {
+            CBC_Mode< DES_EDE2 >::Decryption d;
+            d.SetKeyWithIV(key, sizeKey, iv);
+
+            // The StreamTransformationFilter removes
+            //  padding as required.
+            StringSource s(cipher, true, 
+                new StreamTransformationFilter(d,
+                    new StringSink(recovered)
+                ) // StreamTransformationFilter
+            ); // StringSource
+        }
+        catch(const CryptoPP::Exception& e)
+        {
+            cerr << e.what() << endl;
+            return;
+        }
+
+        i++;
+    }
+    int stop_s = clock();
+    double etime = (stop_s - start_s)/double(CLOCKS_PER_SEC)*1000;
+    wcout << "*** This is 2TDES ***" << endl;
+    wcout << "plain text: " << wplain << endl;
+    // Pretty print
+    encoded.clear();
+    StringSource(cipher, true,
+        new HexEncoder(
+            new StringSink(encoded)
+        ) // HexEncoder
+    ); // StringSource
+    wcout << "cipher text: " << string_to_wstring(encoded) << endl;
+    wcout << "recovered text: " << string_to_wstring(recovered) << endl;
+    wcout << "average execution times in 1000 times: " << etime << " ms" << endl << endl;
+}
+
+void tri_tdes()
+{
+    int start_s = clock();
+    int i = 0;
+    while (i<=1000)
+    {
+        cipher.clear();
+        recovered.clear();
+        try
+        {
+
+            CBC_Mode< DES_EDE3 >::Encryption e;
+            e.SetKeyWithIV(key, sizeKey, iv);
+
+            StringSource(plain, true, 
+                new StreamTransformationFilter(e,
+                    new StringSink(cipher)
+                ) // StreamTransformationFilter      
+            ); // StringSource
+        }
+        catch(const CryptoPP::Exception& e)
+        {
+            cerr << e.what() << endl;
+            return;
+        }
+
+        try
+        {
+            CBC_Mode< DES_EDE3 >::Decryption d;
+            d.SetKeyWithIV(key, sizeKey, iv);
+
+            StringSource s(cipher, true, 
+                new StreamTransformationFilter(d,
+                    new StringSink(recovered)
+                ) // StreamTransformationFilter
+            ); // StringSource
+        }
+        catch(const CryptoPP::Exception& e)
+        {
+            cerr << e.what() << endl;
+            return;
+        }
+        i++;
+    }
+    int stop_s = clock();
+    double etime = (stop_s - start_s)/double(CLOCKS_PER_SEC)*1000;
+    wcout << "*** This is 3TDES ***" << endl;
+    wcout << "plain text: " << wplain << endl;
+    // Pretty print
+    encoded.clear();
+    StringSource(cipher, true,
+        new HexEncoder(
+            new StringSink(encoded)
+        ) // HexEncoder
+    ); // StringSource
+    wcout << "cipher text: " << string_to_wstring(encoded) << endl;
+    wcout << "recovered text: " << string_to_wstring(recovered) << endl;
+    wcout << "average execution times in 1000 times: " << etime << " ms" << endl << endl;
+}
+
+
+void randomKeyGenerator(int choice)
+{
+    if(choice == 9)
+    {
+        key = new byte[8];
+        sizeKey = 8;
+    }
+    else if(choice == 10)
+    {
+        key = new byte[16];
+        sizeKey = 16;
+    }
+    else if(choice == 11)
+    {
+        key = new byte[24];
+        sizeKey = 24;
+    }
+    else{
+        key = new byte[32];
+        sizeKey = 32;
+    }
+    AutoSeededRandomPool prng;
+    prng.GenerateBlock(key, sizeKey);
+    encoded.clear();
+	StringSource(key, sizeKey, true,
+		new HexEncoder(
+			new StringSink(encoded)
+		) // HexEncoder
+	); // StringSource
+	wcout << sizeKey <<"-bytes key: " << string_to_wstring(encoded) << endl;
+}
+
+void ramdomIVGenerator(int choice)
+{
+    AutoSeededRandomPool prng;
+    if(choice == 8)
+    {
+        wcout << "Maximum Initialization Vector for CCM mode is 13bytes" << endl;
+        iv = new byte[13];
+        sizeIV = 13;
+    }
+    else{
+        iv = new byte[16];
+	    sizeIV = 16;
+    }
+    prng.GenerateBlock(iv, sizeIV);
+    // Pretty print iv
+    encoded.clear();
+    StringSource(iv, sizeIV, true,
+        new HexEncoder(
+            new StringSink(encoded)
+        ) // HexEncoder
+    ); // StringSource
+    wcout << sizeIV <<"-bytes iv: " << string_to_wstring(encoded) << endl;
+}
+
+void inputKeyFromScreen(int choice)
+{
+    wstring wkey;
+    string strkey;
+
+    if(choice == 9)
+    {
+        do{
+            wcout << "Type your Secret key 8-bytes: " << endl;
+            getline(wcin, wkey);
+            strkey = wstring_to_string(wkey);
+        }while(strkey.size() != 8);
+        key = new byte[8];
+        sizeKey = 8;
+    }
+    else if(choice == 10)
+    {
+        do{
+            wcout << "Type your Secret key 16-bytes: " << endl;
+            getline(wcin, wkey);
+            strkey = wstring_to_string(wkey);
+        }while(strkey.size() != 16);
+        key = new byte[16];
+        sizeKey = 16;
+    }
+    else if(choice == 11)
+    {
+        do{
+            wcout << "Type your Secret key 24-bytes: " << endl;
+            getline(wcin, wkey);
+            strkey = wstring_to_string(wkey);
+        }while(strkey.size() != 24);
+        key = new byte[24];
+        sizeKey = 24;
+    }
+    else{
+        do{
+            wcout << "Type your Secret key 32-bytes: " << endl;
+            getline(wcin, wkey);
+            strkey = wstring_to_string(wkey);
+        }while(strkey.size() != 32);
+        key = new byte[32];
+        sizeKey = 32;
+    }
+
+	StringSource ss(strkey, false);
+	CryptoPP::ArraySink copykey(key, sizeKey);
+	ss.Detach(new Redirector(copykey));
+	ss.Pump(sizeKey); 
+
+    encoded.clear();
+	StringSource(key, sizeKey, true,
+		new HexEncoder(
+			new StringSink(encoded)
+		) // HexEncoder
+	); // StringSource
+	wcout << sizeKey <<"-bytes key: " << string_to_wstring(encoded) << endl;
+}
+
+void inputIVFromScreen(int choice)
+{
+    wstring wiv;
+    string striv;
+    if(choice == 8)
+    {
+        do{
+            wcout << "Maximum Initialization Vector for CCM mode is 13bytes. \nType your Initial vector 13-bytes: " << endl;
+            getline(wcin, wiv);
+            striv = wstring_to_string(wiv);
+        }while(striv.size() != 13);
+        iv = new byte[13];
+        sizeIV = 13;
+    }
+    else{
+        do{
+            wcout << "Type your Initial vector 16-bytes: " << endl;
+            getline(wcin, wiv);
+            striv = wstring_to_string(wiv);
+        }while(striv.size() != 16);
+        iv = new byte[16];
+        sizeIV = 16;
+    }
+
+    StringSource ss(striv, false);
+    CryptoPP::ArraySink copyiv(iv, sizeIV);
+    ss.Detach(new Redirector(copyiv));
+    ss.Pump(sizeIV); 
+    
+    encoded.clear();
+    StringSource(iv, sizeIV, true,
+        new HexEncoder(
+            new StringSink(encoded)
+        ) // HexEncoder
+    ); // StringSource
+    wcout << sizeIV <<"-bytes iv: " << string_to_wstring(encoded) << endl;
+}
+
+int inputKeyFromFile(int choice)
+{
+    wstring wfileName;
+    string fileName;
+    string sub;
+    try{
+        if(choice == 9)
+        {
+            wcout << "Please type 8-bytes key's file name you want to import - [filename].key: " << endl;
+            getline(wcin, wfileName);
+            fileName = wstring_to_string(wfileName);
+            key = new byte[8];
+            sizeKey = 8;
+        }
+        else if(choice == 10)
+        {
+            wcout << "Please type 16-bytes key's file name you want to import - [filename].key: " << endl;
+            getline(wcin, wfileName);
+            fileName = wstring_to_string(wfileName);
+            key = new byte[16];
+            sizeKey = 16;
+        }
+        else if(choice == 11)
+        {
+            wcout << "Please type 24-bytes key's file name you want to import - [filename].key: " << endl;
+            getline(wcin, wfileName);
+            fileName = wstring_to_string(wfileName);
+            key = new byte[24];
+            sizeKey = 24;
+        }
+        else{
+            wcout << "Please type 32-bytes key's file name you want to import - [filename].key: " << endl;
+            getline(wcin, wfileName);
+            fileName = wstring_to_string(wfileName);
+            key = new byte[32];
+            sizeKey = 32;
+        }
+
+        const char * c = fileName.c_str();
+        FileSource fs(c, false);
+        /*Create space  for key*/ 
+        CryptoPP::ArraySink copykey(key, sizeKey);
+        /*Copy data from AES_key.key  to  key */ 
+        fs.Detach(new Redirector(copykey));
+        fs.Pump(sizeKey);  // Pump first 32 bytes
+
+        encoded.clear();
+        StringSource(key, sizeKey, true,
+            new HexEncoder(
+                new StringSink(encoded)
+            ) // HexEncoder
+        ); // StringSource
+        wcout << sizeKey <<"-bytes key: " << string_to_wstring(encoded) << endl;
+    }
+    catch(CryptoPP::FileStore::OpenErr& e)
+    {
+        cerr << "Caught Error: Do not found a file you typed..." << endl;
+        cerr << e.what() << endl;
+        cerr << endl;
+        return 1;
+    }
+    return 0;
+}
+int inputIVFromFile(int choice)
+{
+    wstring wfileName;
+    string fileName;
+    string sub;
+    try{
+        if(choice == 8)
+        {
+            wcout << "Maximum Initialization Vector for CCM mode is 13bytes. \nPlease type iv's file name you want to import - [filename].key: " << endl;
+            getline(wcin, wfileName);
+            fileName = wstring_to_string(wfileName);
+            iv = new byte[13];
+            sizeIV = 13;
+        }
+        else{
+            wcout << "Please type iv's file name you want to import - [filename].key: " << endl;
+            getline(wcin, wfileName);
+            fileName = wstring_to_string(wfileName);
+            iv = new byte[16];
+            sizeIV = 16;
+        }
+
+        const char * c = fileName.c_str();
+        FileSource fs(c, false);
+        /*Create space  for key*/ 
+        CryptoPP::ArraySink copyiv(iv, sizeIV);
+        /*Copy data from .key  to  key */ 
+        fs.Detach(new Redirector(copyiv));
+        fs.Pump(sizeIV);  // Pump first 13 bytes
+        
+        encoded.clear();
+        StringSource(iv, sizeIV, true,
+            new HexEncoder(
+                new StringSink(encoded)
+            ) // HexEncoder
+        ); // StringSource
+        wcout << sizeIV <<"-bytes iv: " << string_to_wstring(encoded) << endl;
+    }
+    catch(CryptoPP::FileStore::OpenErr& e)
+    {
+        cerr << "Caught Error: Do not found a file you typed..." << endl;
+        cerr << e.what() << endl;
+        cerr << endl;
+        return 1;
+    }
+    return 0;
+}
+
+void chooseKey_IV(int choiceMode)
+{
+    int choiceKey = 0;
+    wcout << "Choose source of Secret key to import:   \n\t1.Ramdom generator  \n\t2.From Screen   \n\t3.From file" <<endl;
+    wcin >> choiceKey;
+    wcin.ignore();
+    switch (choiceKey)
+    {
+    case 1:
+        randomKeyGenerator(choiceMode);
+        break;
+    case 2:
+        inputKeyFromScreen(choiceMode);
+        break;
+    case 3:
+    {
+        int checkErr = 0;
+        /*do while loop to check error when user select file error*/
+        do{
+            checkErr = inputKeyFromFile(choiceMode);
+        }while(checkErr);
+        break;
+    }
+    default:
+        break;
+    }
+    if(choiceMode != 4 && choiceMode != 9 && choiceMode != 10 && choiceMode != 11)
+    {
+        int choiceIV = 0;
+        wcout << "Choose source of Intinial Vector to import:   \n\t1.Ramdom generator  \n\t2.From Screen   \n\t3.From file" <<endl;
+        wcin >> choiceIV;
+        wcin.ignore();
+        switch (choiceIV)
+        {
+        case 1:
+            ramdomIVGenerator(choiceMode);
+            break;
+        case 2:
+            inputIVFromScreen(choiceMode);
+            break;
+        case 3:
+        {
+            int checkErr = 0;
+            /*do while loop to check error when user select file error*/
+            do{
+                checkErr = inputIVFromFile(choiceMode);
+            }while(checkErr);
+            break;
+        }
+        default:
+            break;
+        }
+    }
+}
 int main(int argc, char* argv[])
 {
     /* Only support input and output in form wstring (wcin, wcout)*/
@@ -667,90 +1175,87 @@ int main(int argc, char* argv[])
 	getline(wcin,wplain);
     plain=wstring_to_string(wplain);
 	
-    int choice = 1;
-    wcout << "*** Please choose an option below ***" << endl;
-    wcout << "   0. Quit "<< endl;
-    wcout << "   1. AES modes CBC "<< endl;
-    wcout << "   2. AES modes OFB "<< endl;
-    wcout << "   3. AES modes CTR "<< endl;
-    wcout << "   4. AES modes ECB "<< endl;
-    wcout << "   5. AES modes CFB "<< endl;
-    wcout << "   6. AES modes GCM "<< endl;
-    wcout << "   7. AES modes XTS "<< endl;
-    wcout << "   8. AES modes CCM "<< endl;
-    wcout << "   9. DES modes CBC "<< endl;
-    wcout << "   10. 2TDES modes CBC "<< endl;
-    wcout << "   11. 3TDES modes CBC "<< endl;
-    wcout << "The option number you choose is: ";
-    wcin >> choice;
-    wcin.ignore();
-    wcout << endl;
-
-    AutoSeededRandomPool prng;//tao chuoi bit random, dau ra la byte
-
-    prng.GenerateBlock(key, sizeof(key));
-    encoded.clear();
-	StringSource(key, sizeof(key), true,
-		new HexEncoder(
-			new StringSink(encoded)
-		) // HexEncoder
-	); // StringSource
-	wcout << sizeof(key) <<"-bit key: " << string_to_wstring(encoded) << endl;
-    if(choice == 8)
+    while(true)
     {
-        wcout << "Maximum Initialization Vector for CCM mode is 13bit" << endl;
-        prng.GenerateBlock(iv_ccm, 13);
-        // Pretty print iv
-        encoded.clear();
-        StringSource(iv_ccm, sizeof(iv_ccm), true,
-            new HexEncoder(
-                new StringSink(encoded)
-            ) // HexEncoder
-        ); // StringSource
-        wcout << sizeof(iv_ccm) <<"-bit iv: " << string_to_wstring(encoded) << endl;
-    }
-    else{
-	    prng.GenerateBlock(iv, sizeof(iv));
-        // Pretty print iv
-        encoded.clear();
-        StringSource(iv, sizeof(iv), true,
-            new HexEncoder(
-                new StringSink(encoded)
-            ) // HexEncoder
-        ); // StringSource
-        wcout << sizeof(iv) <<"-bit iv: " << string_to_wstring(encoded) << endl;
-    }
-    switch (choice)
-    {
-    case 0:
-        break;
-    case 1:
-        aesCBC();
-        break;
-    case 2:
-        aesOFB();
-        break;
-    case 3:
-        aesCTR();
-        break;
-    case 4:
-        aesECB();
-        break;
-    case 5:
-        aesCFB();
-        break;
-    case 6:
-        aesGCM();
-        break;
-    case 7:
-        aesXTS();
-        break;
-    case 8:
-        aesCCM();
-        break;
-    default:
-        wcout << "!!! You must choose a number of Algorithm option showing on the screen" << endl;
-        break;
+        int choice = 0;
+        wcout << "*** Please choose an option below ***" << endl;
+        wcout << "   0.Quit"<< endl;
+        wcout << "   1. AES modes CBC "<< endl;
+        wcout << "   2. AES modes OFB "<< endl;
+        wcout << "   3. AES modes CTR "<< endl;
+        wcout << "   4. AES modes ECB "<< endl;
+        wcout << "   5. AES modes CFB "<< endl;
+        wcout << "   6. AES modes GCM "<< endl;
+        wcout << "   7. AES modes XTS "<< endl;
+        wcout << "   8. AES modes CCM "<< endl;
+        wcout << "   9. DES modes CBC "<< endl;
+        wcout << "   10. 2-TDES modes CBC "<< endl;
+        wcout << "   11. 3-TDES modes CBC "<< endl;
+        wcout << "The option number you choose is: ";
+        wcin >> choice;
+        wcin.ignore();
+        wcout << endl;
+
+        switch (choice)
+        {
+        case 0:
+            break;
+        case 1:
+            chooseKey_IV(choice);
+            aesCBC();
+            break;
+        case 2:
+            chooseKey_IV(choice);
+            aesOFB();
+            break;
+        case 3:
+            chooseKey_IV(choice);
+            aesCTR();
+            break;
+        case 4:
+            chooseKey_IV(choice);
+            aesECB();
+            break;
+        case 5:
+            chooseKey_IV(choice);
+            aesCFB();
+            break;
+        case 6:
+            chooseKey_IV(choice);
+            aesGCM();
+            break;
+        case 7:
+            chooseKey_IV(choice);
+            aesXTS();
+            break;
+        case 8:
+            chooseKey_IV(choice);
+            aesCCM();
+            break;
+        case 9:
+            chooseKey_IV(choice);
+            des();
+            break;
+        case 10:
+            chooseKey_IV(choice);
+            dou_tdes();
+            break;
+        case 11:
+            chooseKey_IV(choice);
+            tri_tdes();
+            break;
+        default:
+            wcout << "!!! You must choose a number of Algorithm options showing on the screen" << endl;
+            break;
+        }
+    
+        string strQuit;
+        wstring wstrQuit;
+        wcout << "Do you want to quit?(y/n)";
+        wcin >> wstrQuit;
+        strQuit = wstring_to_string(wstrQuit);
+        if(strQuit == "y")
+            break;
     }
     wcout << "Good bye." << endl;
 	return 0;
