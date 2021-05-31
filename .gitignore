@@ -4,6 +4,8 @@
 *
 !*.*
 
+!AES/
+!DES/
 # Key
 *.key 
 
