@@ -341,10 +341,7 @@ string decryptCBC(string cipher, string iv, vector<string> rkb, vector<string> r
     recovered = bin2hex(recovered);
     return recovered;
 }
-void  toUpperCase(std::string& str)
-{
-    std::transform(str.begin(), str.end(), str.begin(), ::toupper);
-}
+
 /////////////////
 
 string Str2Hex(string str)
