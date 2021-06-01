@@ -209,20 +209,26 @@ int main()
     plain = str2Hex(plain);
     wcout << "Your plain text at hex: " << string_to_wstring(plain) << endl;
     wcout<<"Enter key(8 bytes): ";
+    getline(wcin, wskey);
     if(typeOs)
         wcin.ignore();
-    getline(wcin, wskey);
     key = str2Hex(wstring_to_string(wskey));
     if(key.size() != 16)
+    {
+        wcout << "Your key lenght is not 8 bytes. Quit" << endl;
         return 1;
+    }
     wcout << "8-bytes Key at hex: " << string_to_wstring(key) << endl;
     wcout<<"Enter initial vector(8 bytes): ";
+    getline(wcin, wsiv);
     if(typeOs)
         wcin.ignore();
-    getline(wcin, wsiv);
     iv = str2Hex(wstring_to_string(wsiv));
     if(iv.size() != 16)
+    {
+        wcout << "Your initial vector lenght is not 8 bytes. Quit" << endl;
         return 1;
+    }
     wcout << "8-bytes Initial vector at hex: " << string_to_wstring(iv) << endl;
     
     // Key Generation
