@@ -90,6 +90,8 @@ using  std::codecvt_utf8;
 #include <sstream>
 using std::ostringstream;
 
+#include <chrono>
+using namespace std::chrono;
 /* Functions def*/
 wstring string_to_wstring (const std::string& str);
 string wstring_to_string (const std::wstring& str);
@@ -137,6 +139,7 @@ int main(int argc, char* argv[])
 
 	wcout << "*** First, please type input plaintext ***" << endl;
 	getline(wcin,wplain);
+    //if the os is window, it'll ignore 1 time.
     if(typeOs)
         wcin.ignore();
     plain=wstring_to_string(wplain);
@@ -146,17 +149,17 @@ int main(int argc, char* argv[])
         int choice = 0;
         wcout << "*** Please choose an option below ***" << endl;
         wcout << "   0.Quit"<< endl;
-        wcout << "   1. AES modes CBC "<< endl;
-        wcout << "   2. AES modes OFB "<< endl;
-        wcout << "   3. AES modes CTR "<< endl;
-        wcout << "   4. AES modes ECB "<< endl;
-        wcout << "   5. AES modes CFB "<< endl;
-        wcout << "   6. AES modes GCM "<< endl;
-        wcout << "   7. AES modes XTS "<< endl;
-        wcout << "   8. AES modes CCM "<< endl;
-        wcout << "   9. DES modes CBC "<< endl;
-        wcout << "   10. 2-TDES modes CBC "<< endl;
-        wcout << "   11. 3-TDES modes CBC "<< endl;
+        wcout << "   1. AES mode CBC "<< endl;
+        wcout << "   2. AES mode OFB "<< endl;
+        wcout << "   3. AES mode CTR "<< endl;
+        wcout << "   4. AES mode ECB "<< endl;
+        wcout << "   5. AES mode CFB "<< endl;
+        wcout << "   6. AES mode GCM "<< endl;
+        wcout << "   7. AES mode XTS "<< endl;
+        wcout << "   8. AES mode CCM "<< endl;
+        wcout << "   9. DES mode CBC "<< endl;
+        wcout << "   10. 2-TDES mode CBC "<< endl;
+        wcout << "   11. 3-TDES mode CBC "<< endl;
         wcout << "The option number you choose is: ";
         wcin >> choice;
         wcin.ignore();
@@ -253,6 +256,7 @@ wstring integer_to_wstring(const CryptoPP::Integer &t)
 
 void aesCBC()
 {
+    //auto start = high_resolution_clock::now();
     int start_s = clock();
     int i = 0;
     while (i<10000)
@@ -291,8 +295,13 @@ void aesCBC()
         }
         i++;
     }
+    //auto stop = high_resolution_clock::now();
     int stop_s = clock();
-    double etime = (stop_s - start_s)/double(CLOCKS_PER_SEC)*10000;
+    /*We can use duration_cast to calc correctly time*/
+    /*auto duration = duration_cast<milliseconds>(stop - start);
+    double etime = (double)(duration.count())/10000 ;*/
+    double res = ((stop_s - start_s)/(double(CLOCKS_PER_SEC)))*1000;
+    double etime = res/10000;//(<second> convert to milisecond by multiply 1000)) and then divide 10000 rounds. == duration.count()
     wcout << "*** This is AES CBC mode ***" << endl;
     wcout << "plain text: " << wplain << endl;
     // Pretty print
@@ -304,7 +313,8 @@ void aesCBC()
     ); // StringSource
     wcout << "cipher text: " << string_to_wstring(encoded) << endl;
     wcout << "recovered text: " << string_to_wstring(recovered) << endl;
-    wcout << "average execution times in 10000 times: " << etime << " ms" << endl << endl;
+    wcout << "total execution 10000 times: " << res << "ms" << endl;
+    wcout << "average execution time " << etime << " ms" << endl << endl;
 }
 
 void aesOFB()
@@ -350,7 +360,8 @@ void aesOFB()
         i++;
     }
     int stop_s = clock();
-    double etime = (stop_s - start_s)/double(CLOCKS_PER_SEC)*10000;
+    double res = ((stop_s - start_s)/(double(CLOCKS_PER_SEC)))*1000;
+    double etime = res/10000;
     wcout << "*** This is AES OFB mode ***" << endl;
     wcout << "plain text: " << wplain << endl;
     // Pretty print
@@ -362,7 +373,8 @@ void aesOFB()
     ); // StringSource
     wcout << "cipher text: " << string_to_wstring(encoded) << endl;
     wcout << "recovered text: " << string_to_wstring(recovered) << endl;
-    wcout << "average execution times in 10000 times: " << etime << " ms" << endl << endl;
+    wcout << "total execution 10000 times: " << res << "ms" << endl;
+    wcout << "average execution time " << etime << " ms" << endl << endl;
 }
 
 void aesCTR()
@@ -407,7 +419,8 @@ void aesCTR()
         i++;
     }
     int stop_s = clock();
-    double etime = (stop_s - start_s)/double(CLOCKS_PER_SEC)*10000;
+    double res = ((stop_s - start_s)/(double(CLOCKS_PER_SEC)))*1000;
+    double etime = res/10000;
     wcout << "*** This is AES CTR mode ***" << endl;
     wcout << "plain text: " << wplain << endl;
     // Pretty print
@@ -419,7 +432,8 @@ void aesCTR()
     ); // StringSource
     wcout << "cipher text: " << string_to_wstring(encoded) << endl;
     wcout << "recovered text: " << string_to_wstring(recovered) << endl;
-    wcout << "average execution times in 10000 times: " << etime << " ms" << endl << endl;
+    wcout << "total execution 10000 times: " << res << "ms" << endl;
+    wcout << "average execution time " << etime << " ms" << endl << endl;
 }
 
 void aesECB()
@@ -463,7 +477,8 @@ void aesECB()
         i++;
     }
     int stop_s = clock();
-    double etime = (stop_s - start_s)/double(CLOCKS_PER_SEC)*10000;
+    double res = ((stop_s - start_s)/(double(CLOCKS_PER_SEC)))*1000;
+    double etime = res/10000;
     wcout << "*** This is AES ECB mode ***" << endl;
     wcout << "plain text: " << wplain << endl;
     // Pretty print
@@ -475,7 +490,8 @@ void aesECB()
     ); // StringSource
     wcout << "cipher text: " << string_to_wstring(encoded) << endl;
     wcout << "recovered text: " << string_to_wstring(recovered) << endl;
-    wcout << "average execution times in 10000 times: " << etime << " ms" << endl << endl;
+    wcout << "total execution 10000 times: " << res << "ms" << endl;
+    wcout << "average execution time " << etime << " ms" << endl << endl;
 }
 
 void aesCFB()
@@ -519,7 +535,8 @@ void aesCFB()
         i++;
     }
     int stop_s = clock();
-    double etime = (stop_s - start_s)/double(CLOCKS_PER_SEC)*10000;
+    double res = ((stop_s - start_s)/(double(CLOCKS_PER_SEC)))*1000;
+    double etime = res/10000;
     wcout << "*** This is AES CFB mode ***" << endl;
     wcout << "plain text: " << wplain << endl;
     // Pretty print
@@ -531,7 +548,8 @@ void aesCFB()
     ); // StringSource
     wcout << "cipher text: " << string_to_wstring(encoded) << endl;
     wcout << "recovered text: " << string_to_wstring(recovered) << endl;
-    wcout << "average execution times in 10000 times: " << etime << " ms" << endl << endl;
+    wcout << "total execution 10000 times: " << res << "ms" << endl;
+    wcout << "average execution time " << etime << " ms" << endl << endl;
 }
 
 void aesGCM()
@@ -575,7 +593,8 @@ void aesGCM()
         i++;
     }
     int stop_s = clock();
-    double etime = (stop_s - start_s)/double(CLOCKS_PER_SEC)*10000;
+    double res = ((stop_s - start_s)/(double(CLOCKS_PER_SEC)))*1000;
+    double etime = res/10000;
     wcout << "*** This is AES GCM mode ***" << endl;
     wcout << "plain text: " << wplain << endl;
     // Pretty print
@@ -587,7 +606,8 @@ void aesGCM()
     ); // StringSource
     wcout << "cipher text: " << string_to_wstring(encoded) << endl;
     wcout << "recovered text: " << string_to_wstring(recovered) << endl;
-    wcout << "average execution times in 10000 times: " << etime << " ms" << endl << endl;
+    wcout << "total execution 10000 times: " << res << "ms" << endl;
+    wcout << "average execution time " << etime << " ms" << endl << endl;
 }
 
 void aesXTS()
@@ -633,7 +653,8 @@ void aesXTS()
         i++;
     }
     int stop_s = clock();
-    double etime = (stop_s - start_s)/double(CLOCKS_PER_SEC)*10000;
+    double res = ((stop_s - start_s)/(double(CLOCKS_PER_SEC)))*1000;
+    double etime = res/10000;
     wcout << "*** This is AES XTS mode ***" << endl;
     wcout << "plain text: " << wplain << endl;
     // Pretty print
@@ -645,7 +666,8 @@ void aesXTS()
     ); // StringSource
     wcout << "cipher text: " << string_to_wstring(encoded) << endl;
     wcout << "recovered text: " << string_to_wstring(recovered) << endl;
-    wcout << "average execution times in 10000 times: " << etime << " ms" << endl << endl;
+    wcout << "total execution 10000 times: " << res << "ms" << endl;
+    wcout << "average execution time " << etime << " ms" << endl << endl;
 }
 
 void aesCCM()
@@ -723,7 +745,8 @@ void aesCCM()
         i++;
     }
     int stop_s = clock();
-    double etime = (stop_s - start_s)/double(CLOCKS_PER_SEC)*10000;
+    double res = ((stop_s - start_s)/(double(CLOCKS_PER_SEC)))*1000;
+    double etime = res/10000;
     wcout << "*** This is AES CCM mode ***" << endl;
     wcout << "plain text: " << wplain << endl;
     // Pretty print
@@ -735,7 +758,8 @@ void aesCCM()
     ); // StringSource
     wcout << "cipher text: " << string_to_wstring(encoded) << endl;
     wcout << "recovered text: " << string_to_wstring(recovered) << endl;
-    wcout << "average execution times in 10000 times: " << etime << " ms" << endl << endl;
+    wcout << "total execution 10000 times: " << res << "ms" << endl;
+    wcout << "average execution time " << etime << " ms" << endl << endl;
 }
 
 void des()
@@ -781,7 +805,8 @@ void des()
         i++;
     }
     int stop_s = clock();
-    double etime = (stop_s - start_s)/double(CLOCKS_PER_SEC)*10000;
+    double res = ((stop_s - start_s)/(double(CLOCKS_PER_SEC)))*1000;
+    double etime = res/10000;
     wcout << "*** This is DES ***" << endl;
     wcout << "plain text: " << wplain << endl;
     // Pretty print
@@ -793,7 +818,8 @@ void des()
     ); // StringSource
     wcout << "cipher text: " << string_to_wstring(encoded) << endl;
     wcout << "recovered text: " << string_to_wstring(recovered) << endl;
-    wcout << "average execution times in 10000 times: " << etime << " ms" << endl << endl;
+    wcout << "total execution 10000 times: " << res << "ms" << endl;
+    wcout << "average execution time " << etime << " ms" << endl << endl;
 }
 
 void dou_tdes()
@@ -842,7 +868,8 @@ void dou_tdes()
         i++;
     }
     int stop_s = clock();
-    double etime = (stop_s - start_s)/double(CLOCKS_PER_SEC)*10000;
+    double res = ((stop_s - start_s)/(double(CLOCKS_PER_SEC)))*1000;
+    double etime = res/10000;
     wcout << "*** This is 2TDES ***" << endl;
     wcout << "plain text: " << wplain << endl;
     // Pretty print
@@ -854,7 +881,8 @@ void dou_tdes()
     ); // StringSource
     wcout << "cipher text: " << string_to_wstring(encoded) << endl;
     wcout << "recovered text: " << string_to_wstring(recovered) << endl;
-    wcout << "average execution times in 10000 times: " << etime << " ms" << endl << endl;
+    wcout << "total execution 10000 times: " << res << "ms" << endl;
+    wcout << "average execution time " << etime << " ms" << endl << endl;
 }
 
 void tri_tdes()
@@ -902,7 +930,8 @@ void tri_tdes()
         i++;
     }
     int stop_s = clock();
-    double etime = (stop_s - start_s)/double(CLOCKS_PER_SEC)*10000;
+    double res = ((stop_s - start_s)/(double(CLOCKS_PER_SEC)))*1000;
+    double etime = res/10000;
     wcout << "*** This is 3TDES ***" << endl;
     wcout << "plain text: " << wplain << endl;
     // Pretty print
@@ -914,7 +943,8 @@ void tri_tdes()
     ); // StringSource
     wcout << "cipher text: " << string_to_wstring(encoded) << endl;
     wcout << "recovered text: " << string_to_wstring(recovered) << endl;
-    wcout << "average execution times in 10000 times: " << etime << " ms" << endl << endl;
+    wcout << "total execution 10000 times: " << res << "ms" << endl;
+    wcout << "average execution time " << etime << " ms" << endl << endl;
 }
 
 
