@@ -6,6 +6,8 @@
 
 !AES/
 !DES/
+!RSA/
+!ECC/
 # Key
 *.key 
 
