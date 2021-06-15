@@ -10,41 +10,41 @@ using std::endl;
 #include <string>
 using std::string;
 
-#include "cryptopp/osrng.h"
+#include "include/cryptopp/osrng.h"
 // using CryptoPP::AutoSeededX917RNG;
 using CryptoPP::AutoSeededRandomPool;
 
-#include "cryptopp/aes.h"
+#include "include/cryptopp/aes.h"
 using CryptoPP::AES;
 
-#include "cryptopp/integer.h"
-#include "cryptopp/nbtheory.h"
+#include "include/cryptopp/integer.h"
+#include "include/cryptopp/nbtheory.h"
 using CryptoPP::Integer;
 
-#include "cryptopp/sha.h"
+#include "include/cryptopp/sha.h"
 using CryptoPP::SHA1;
 
-#include "cryptopp/filters.h"
+#include "include/cryptopp/filters.h"
 using CryptoPP::StringSource;
 using CryptoPP::StringSink;
 using CryptoPP::ArraySink;
 using CryptoPP::SignerFilter;
 using CryptoPP::SignatureVerificationFilter;
 
-#include "cryptopp/files.h"
+#include "include/cryptopp/files.h"
 using CryptoPP::FileSource;
 using CryptoPP::FileSink;
 using CryptoPP::byte;
 
-#include "cryptopp/eccrypto.h"
+#include "include/cryptopp/eccrypto.h"
 using CryptoPP::ECDSA;
 using CryptoPP::ECP;
 using CryptoPP::DL_GroupParameters_EC;
 
-#include "cryptopp/oids.h"
+#include "include/cryptopp/oids.h"
 using CryptoPP::OID;
 // Hex encode, decode
-#include "cryptopp/hex.h"
+#include "include/cryptopp/hex.h"
 using CryptoPP::HexEncoder;
 using CryptoPP::HexDecoder;
 
