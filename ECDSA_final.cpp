@@ -1,5 +1,4 @@
 #include <assert.h>
-
 #include <iostream>
 using std::wcout;
 using std::wcin;
@@ -88,9 +87,6 @@ void SavePublicKey( const string& filename, const ECDSA<ECP, SHA1>::PublicKey& k
 void LoadPrivateKey( const string& filename, ECDSA<ECP, SHA1>::PrivateKey& key );
 void LoadPublicKey( const string& filename, ECDSA<ECP, SHA1>::PublicKey& key );
 
-void PrintDomainParameters( const ECDSA<ECP, SHA1>::PrivateKey& key );
-void PrintDomainParameters( const ECDSA<ECP, SHA1>::PublicKey& key );
-void PrintDomainParameters( const DL_GroupParameters_EC<ECP>& params );
 void PrintPrivateKey( const ECDSA<ECP, SHA1>::PrivateKey& key );
 void PrintPublicKey( const ECDSA<ECP, SHA1>::PublicKey& key );
 
@@ -115,10 +111,11 @@ int main(int argc, char* argv[])
 #else
 #endif
     int option;
-    wcout << "Select mode: " << endl;
-    wcout << "1. GenerateKeyPhase" << endl;
-    wcout << "2. SignPhase" << endl;
-    wcout << "3. VerifyPhase" << endl;
+    wcout << "Instructions: the program need message file(.txt) and a pair of key file(.key),\nif you do not have key files, you need to generate it first.(option 1)." << endl << endl;
+    wcout << "Select phase: " << endl;
+    wcout << "1. Generate Keys Phase" << endl;
+    wcout << "2. Sign Phase" << endl;
+    wcout << "3. Verify Phase" << endl;
     wcin >> option;
     wcin.ignore();
     if (osType == 2)
@@ -173,50 +170,9 @@ wstring integer_to_wstring(const CryptoPP::Integer &t)
     return towstring.from_bytes(encoded);
 }
 
-int GenerateKeyPhase()
+// automatically convert utf8 text file to string, no need convertion phase.
+string loadFile(const string &fileName)
 {
-    // Scratch result
-    bool result = false;   
-    
-    // Private and Public keys
-    ECDSA<ECP, SHA1>::PrivateKey privateKey;
-    ECDSA<ECP, SHA1>::PublicKey publicKey;
-
-    // Generate Keys
-    result = GeneratePrivateKey( CryptoPP::ASN1::secp256r1(), privateKey );
-    //assert( true == result );
-    if( !result ) { return -1; }
-
-    result = GeneratePublicKey( privateKey, publicKey );
-    //assert( true == result );
-    if( !result ) { return -2; }
-    
-    /////////////////////////////////////////////
-    // Save key in PKCS#9 and X.509 format    
-    SavePrivateKey( "ec.private.key", privateKey );
-    SavePublicKey( "ec.public.key", publicKey );
-
-    /////////////////////////////////////////////
-    // Print Domain Parameters and Keys    
-    //PrintDomainParameters( publicKey );
-    PrintPrivateKey( privateKey );
-    PrintPublicKey( publicKey );
-    /////////////////////////////////////////////
-    return 0;
-}
-
-void SignPhase()
-{
-    // Private and Public keys
-    ECDSA<ECP, SHA1>::PrivateKey privateKey;
-    ECDSA<ECP, SHA1>::PublicKey publicKey;
-    // Sign and Verify a message      
-    wstring wsFileName;
-    wcout << "Enter your message file name: ";
-    wcin >> wsFileName;
-    if (osType == 2)
-        wcin.ignore();
-    string fileName = wstring_to_string(wsFileName);
     string message;
     try{
     FileSource file(fileName.c_str(), true, new StringSink(message));
@@ -225,10 +181,47 @@ void SignPhase()
         std::cerr << e.what() << endl;
         exit(1);
     }
+    return message;
+}
+int GenerateKeyPhase()
+{
+    // Scratch result
+    bool result = false;   
+    // Private and Public keys
+    ECDSA<ECP, SHA1>::PrivateKey privateKey;
+    ECDSA<ECP, SHA1>::PublicKey publicKey;
+    // Generate Keys
+    result = GeneratePrivateKey( CryptoPP::ASN1::secp256r1(), privateKey );
+    if( !result ) { return -1; }
+
+    result = GeneratePublicKey( privateKey, publicKey );
+    if( !result ) { return -2; }
+      
+    SavePrivateKey( "ec.private.key", privateKey );
+    SavePublicKey( "ec.public.key", publicKey );
+
+    PrintPrivateKey( privateKey );
+    PrintPublicKey( publicKey );
+    return 0;
+}
+
+void SignPhase()
+{
+    wcout << "-----Sign message phase-----" << endl;
+    // Private and Public keys
+    ECDSA<ECP, SHA1>::PrivateKey privateKey;
+    ECDSA<ECP, SHA1>::PublicKey publicKey;
+    // Sign and Verify a message      
+    wstring wsFileName;
+    wcout << "Enter your message's file name: ";
+    wcin >> wsFileName;
+    if (osType == 2)
+        wcin.ignore();
+    string fileName = wstring_to_string(wsFileName);
+    string message = loadFile(fileName);
     wcout << "Your message :"<< string_to_wstring(message) << endl;
 
     string signature, encode;
-    // Pretty print signature
     AutoSeededRandomPool prng;
     // Load secret key
     LoadPrivateKey( "ec.private.key", privateKey);
@@ -241,6 +234,7 @@ void SignPhase()
     wcout << "Public key:" << endl;
     wcout << "X:" <<std::hex << integer_to_wstring(publicKey.GetPublicElement().x) << endl;
     wcout << "Y:" <<std::hex << integer_to_wstring(publicKey.GetPublicElement().y) << endl;
+    wcout << "-----Waiting for signing-----" << endl;
     int start_s = clock();
     int i = 0;
     while(i < 10000)
@@ -258,38 +252,31 @@ void SignPhase()
     int stop_s = clock();
     double res = ((stop_s - start_s)/(double(CLOCKS_PER_SEC)))*1000;
     double etime = res/10000;
-    /*  kG = (x1, y1), r=x1; s= 𝑘^-1(𝐻(𝑚)+𝑥.𝑟) mod 𝑛 *, h=1, r=s = 2n
-    */
+    /*  kG = (x1, y1), r=x1; s= 𝑘^-1(𝐻(𝑚)+𝑥.𝑟) mod 𝑛 *, h=1, r=s = 2n*/
     wcout << "Total execution 10000 times: " << res << "ms" << endl;
     wcout << "Average execution times is " << etime << " ms" << endl;
-    wcout << "signature (r,s):" << string_to_wstring(signature) << endl;
+    wcout << "Signature (r,s):" << string_to_wstring(signature) << endl;
+    wcout << "***Please save this signature in order to verify the message."<< endl;
 }
 
 void VerifyPhase()
 {
+    wcout << "-----Verify signature phase-----" << endl;
     bool result;
     // Verify by any peope: input publicKey, message, signature=(r,s)
-    // Edit: verifier parameters : Public key hex encoded; (r, s) hex encoded
     ECDSA<ECP, SHA1>::PublicKey publicKey_r;
     LoadPublicKey("ec.public.key", publicKey_r);
-    wcout << "Public key have loaded:" << endl;
+    wcout << "Public key was loaded from file:" << endl;
     wcout << "X:" <<std::hex << integer_to_wstring(publicKey_r.GetPublicElement().x) << endl;
     wcout << "Y:" <<std::hex << integer_to_wstring(publicKey_r.GetPublicElement().y) << endl;
 
     wstring wsFileName;
-    wcout << "Enter your message file name: ";
+    wcout << "Enter your message's file name: ";
     wcin >> wsFileName;
     if (osType == 2)
         wcin.ignore();
     string fileName = wstring_to_string(wsFileName);
-    string message_r;
-    try{
-    FileSource file(fileName.c_str(), true, new StringSink(message_r));
-    }
-    catch (const std::exception &e){
-        std::cerr << e.what() << endl;
-        exit(1);
-    }
+    string message_r = loadFile(fileName);
     wcout << "Your message need to verify:"<< string_to_wstring(message_r) << endl;
 
     string signature;
@@ -303,8 +290,8 @@ void VerifyPhase()
     new HexDecoder(
         new StringSink(signature_r)
         ) // HexDecoder
-    ); //
-
+    );
+    wcout << "-----Waiting for verifying-----" << endl;
     int start_s = clock();
     int i = 0;
     while(i < 10000)
@@ -315,25 +302,22 @@ void VerifyPhase()
     int stop_s = clock();
     double res = ((stop_s - start_s)/(double(CLOCKS_PER_SEC)))*1000;
     double etime = res/10000;
-    // assert( true == result );
     wcout << "Total execution 10000 times: " << res << "ms" << endl;
     wcout << "Average execution times is " << etime << " ms" << endl;
     wcout << "Verify the signature on m:" << result << endl;
     if(result){
-        wcout << "Your message and signature are correctly" << endl;
+        wcout << "Message signature verification success" << endl;
     }
     else{
-        wcout << "Your message and signature are not correctly" << endl;
+        wcout << "Message signature verification failed" << endl;
     }
 }
 
 bool GeneratePrivateKey( const OID& oid, ECDSA<ECP, SHA1>::PrivateKey& key )
 {
     AutoSeededRandomPool prng;
-
     key.Initialize( prng, oid );
     assert( key.Validate( prng, 3 ) );
-     
     return key.Validate( prng, 3 );
 }
 
@@ -342,21 +326,9 @@ bool GeneratePublicKey( const ECDSA<ECP, SHA1>::PrivateKey& privateKey, ECDSA<EC
     AutoSeededRandomPool prng;
     // Sanity check
     assert( privateKey.Validate( prng, 3 ) );
-
     privateKey.MakePublicKey(publicKey);
     assert( publicKey.Validate( prng, 3 ) );
-
     return publicKey.Validate( prng, 3 );
-}
-
-void PrintDomainParameters( const ECDSA<ECP, SHA1>::PrivateKey& key )
-{
-    PrintDomainParameters( key.GetGroupParameters() );
-}
-
-void PrintDomainParameters( const ECDSA<ECP, SHA1>::PublicKey& key )
-{
-    PrintDomainParameters( key.GetGroupParameters() );
 }
 
 void PrintPrivateKey( const ECDSA<ECP, SHA1>::PrivateKey& key )
@@ -406,7 +378,6 @@ bool SignMessage( const ECDSA<ECP, SHA1>::PrivateKey& key, const string& message
             new StringSink( signature )
         ) // SignerFilter
     ); // StringSource
-    
     return !signature.empty();
 }
 
@@ -420,30 +391,5 @@ bool VerifyMessage( const ECDSA<ECP, SHA1>::PublicKey& key, const string& messag
             new ArraySink( (byte*)&result, sizeof(result) )
         ) // SignatureVerificationFilter
     );
-
     return result;
-}
-
-void PrintDomainParameters( const DL_GroupParameters_EC<ECP>& params )
-{
-    wcout << endl;
- 
-    wcout << "Modulus:" << endl;
-    wcout << " " <<integer_to_wstring(params.GetCurve().GetField().GetModulus()) << endl;
-    
-    wcout << "Coefficient A:" << endl;
-    wcout << " " << integer_to_wstring(params.GetCurve().GetA()) << endl;
-    
-    wcout << "Coefficient B:" << endl;
-    wcout << " " << integer_to_wstring(params.GetCurve().GetB()) << endl;
-    
-    wcout << "Base Point:" << endl;
-    wcout << " X: " << integer_to_wstring(params.GetSubgroupGenerator().x) << endl; 
-    wcout << " Y: " << integer_to_wstring(params.GetSubgroupGenerator().y) << endl;
-    
-    wcout << "Subgroup Order:" << endl;
-    wcout << " " << integer_to_wstring(params.GetSubgroupOrder()) << endl;
-    
-    wcout << "Cofactor:" << endl;
-    wcout << " " << integer_to_wstring(params.GetCofactor()) << endl;    
 }
