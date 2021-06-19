@@ -197,8 +197,8 @@ int GenerateKeyPhase()
     result = GeneratePublicKey( privateKey, publicKey );
     if( !result ) { return -2; }
       
-    SavePrivateKey( "ec.private.key", privateKey );
-    SavePublicKey( "ec.public.key", publicKey );
+    SavePrivateKey( "ec-private.key", privateKey );
+    SavePublicKey( "ec-public.key", publicKey );
 
     PrintPrivateKey( privateKey );
     PrintPublicKey( publicKey );
@@ -224,7 +224,7 @@ void SignPhase()
     string signature, encode;
     AutoSeededRandomPool prng;
     // Load secret key
-    LoadPrivateKey( "ec.private.key", privateKey);
+    LoadPrivateKey( "ec-private.key", privateKey);
     // Print parameters //
     wcout << std::hex << "Prime number p=" << integer_to_wstring(privateKey.GetGroupParameters().GetCurve().GetField().GetModulus())<<endl;
     wcout << "Secret key d:" << std::hex << integer_to_wstring(privateKey.GetPrivateExponent()) << endl;
@@ -265,7 +265,7 @@ void VerifyPhase()
     bool result;
     // Verify by any peope: input publicKey, message, signature=(r,s)
     ECDSA<ECP, SHA1>::PublicKey publicKey_r;
-    LoadPublicKey("ec.public.key", publicKey_r);
+    LoadPublicKey("ec-public.key", publicKey_r);
     wcout << "Public key was loaded from file:" << endl;
     wcout << "X:" <<std::hex << integer_to_wstring(publicKey_r.GetPublicElement().x) << endl;
     wcout << "Y:" <<std::hex << integer_to_wstring(publicKey_r.GetPublicElement().y) << endl;

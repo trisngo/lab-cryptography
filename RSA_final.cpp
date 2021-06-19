@@ -298,9 +298,9 @@ void RSAEncryptionMode()
         int stop_s = clock();
         double res = ((stop_s - start_s)/(double(CLOCKS_PER_SEC)))*1000;
         double etime = res/10000;
-        wcout << "Cipher text: " << string_to_wstring(encoded) << "\nYour cipher text was written to cipher.txt ." << endl;
+        wcout << "Cipher text: " << string_to_wstring(encoded) << "\nYour cipher text was written to rsa-cipher.txt ." << endl;
         ofstream outfile;
-        outfile.open("cipher.txt", std::ios::trunc);//std::ios::trunc
+        outfile.open("rsa-cipher.txt", std::ios::trunc);//std::ios::trunc
         outfile << encoded; 
 
         wcout << "Total execution 10000 times: " << res << " ms" << endl;
