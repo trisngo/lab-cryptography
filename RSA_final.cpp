@@ -1,37 +1,37 @@
-#include "include/cryptopp/rsa.h"
+#include "cryptopp/rsa.h"
 using CryptoPP::InvertibleRSAFunction;
 using CryptoPP::RSA;
 using CryptoPP::RSAES_OAEP_SHA_Decryptor;
 using CryptoPP::RSAES_OAEP_SHA_Encryptor;
 
-#include "include/cryptopp/sha.h"
+#include "cryptopp/sha.h"
 using CryptoPP::SHA1;
 
-#include "include/cryptopp/filters.h"
+#include "cryptopp/filters.h"
 using CryptoPP::BufferedTransformation;
 using CryptoPP::PK_DecryptorFilter;
 using CryptoPP::PK_EncryptorFilter;
 using CryptoPP::StringSink;
 using CryptoPP::StringSource;
 
-#include "include/cryptopp/files.h"
+#include "cryptopp/files.h"
 using CryptoPP::FileSink;
 using CryptoPP::FileSource;
 
-#include "include/cryptopp/osrng.h"
+#include "cryptopp/osrng.h"
 using CryptoPP::AutoSeededRandomPool;
 
-#include "include/cryptopp/secblock.h"
+#include "cryptopp/secblock.h"
 using CryptoPP::SecByteBlock;
 
-#include "include/cryptopp/cryptlib.h"
+#include "cryptopp/cryptlib.h"
 using CryptoPP::BufferedTransformation;
 using CryptoPP::DecodingResult;
 using CryptoPP::Exception;
 using CryptoPP::PrivateKey;
 using CryptoPP::PublicKey;
 
-#include "include/cryptopp/hex.h"
+#include "cryptopp/hex.h"
 using CryptoPP::HexDecoder;
 using CryptoPP::HexEncoder;
 
