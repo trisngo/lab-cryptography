@@ -1,5 +1,5 @@
-/* Hash to string
-h:{0,1}^* --> {0,1}^l, l is digest size */
+/* Hash to number
+h:{0,1}^* --> Z_p, l is digest size */
 #include <iostream>
 using std::wcin;
 using std::wcout;
@@ -10,6 +10,7 @@ using std::endl;
 using std::string;
 using std::wstring;
 
+// libs num
 #include <cryptopp/integer.h>
 #include <cryptopp/nbtheory.h>
 
@@ -85,13 +86,13 @@ int main (int argc, char* argv[])
     encode.clear();
     StringSource(digest, true, 
     new HexEncoder (new StringSink (encode)));
-    // Convert diset to integer;
+    // Convert digest to integer;
     encode = encode+"H";
     CryptoPP::Integer Idigest(encode.data());
-    // Conver to number in Z_p
+    // Conver to number in Z_p(standard curve: 256r1)
     CryptoPP::Integer p("ffffffff00000001000000000000000000000000ffffffffffffffffffffffffh");
     Idigest=Idigest % p;
-    wcout << in2ws(Idigest) << std::endl;
+    wcout << in2ws(Idigest) << endl;
     return 0; 
 }
 
