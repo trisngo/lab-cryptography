@@ -478,6 +478,13 @@ double SHAKE128(string message)
     wcout << "Block size: " << hash.BlockSize() << endl;
     // message, ouput digest 
     wcout << "Message: " << s2ws(message) << endl;
+    wcout << "Input your digest output length d (bytes) for SHAKE128: ";
+    int digLenght;
+    wcin >> digLenght;
+    wcin.ignore();
+    if (osType == 2)
+        wcin.ignore();
+
     string digest;
     int start_s = clock();
     int i = 0;
@@ -486,7 +493,7 @@ double SHAKE128(string message)
         // Input for hash function hash
         hash.Restart();
         hash.Update((const byte*)message.data(), message.size());
-        digest.resize(hash.DigestSize());
+        digest.resize(digLenght);
         // Compute output hash.Final or hash.TruncatedFinal
         hash.TruncatedFinal((byte*)&digest[0],digest.size());
         i++;
@@ -512,6 +519,13 @@ double SHAKE256(string message)
     wcout << "Block size: " << hash.BlockSize() << endl;
     // message, ouput digest 
     wcout << "Message: " << s2ws(message) << endl;
+    wcout << "Input your digest output length d (bytes) for SHAKE128: ";
+    int digLenght;
+    wcin >> digLenght;
+    wcin.ignore();
+    if (osType == 2)
+        wcin.ignore();
+
     string digest;
     int start_s = clock();
     int i = 0;
@@ -520,7 +534,7 @@ double SHAKE256(string message)
         // Input for hash function hash
         hash.Restart();
         hash.Update((const byte*)message.data(), message.size());
-        digest.resize(hash.DigestSize());
+        digest.resize(digLenght);
         // Compute output hash.Final or hash.TruncatedFinal
         hash.TruncatedFinal((byte*)&digest[0],digest.size());
         i++;
