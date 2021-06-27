@@ -474,7 +474,6 @@ double SHAKE128(string message)
     // Information of the hash algorithms	
     wcout << "\n*/*/*/*/*/*" << endl;
     wcout << "Name: " << s2ws(hash.AlgorithmName()) << endl;
-    wcout << "Digest size: " << hash.DigestSize() << endl;
     wcout << "Block size: " << hash.BlockSize() << endl;
     // message, ouput digest 
     wcout << "Message: " << s2ws(message) << endl;
@@ -484,6 +483,7 @@ double SHAKE128(string message)
     wcin.ignore();
     if (osType == 2)
         wcin.ignore();
+    wcout << "Digest size: " << digLenght << endl;
 
     string digest;
     int start_s = clock();
@@ -515,7 +515,6 @@ double SHAKE256(string message)
     // Information of the hash algorithms	
     wcout << "\n*/*/*/*/*/*" << endl;
     wcout << "Name: " << s2ws(hash.AlgorithmName()) << endl;
-    wcout << "Digest size: " << hash.DigestSize() << endl;
     wcout << "Block size: " << hash.BlockSize() << endl;
     // message, ouput digest 
     wcout << "Message: " << s2ws(message) << endl;
@@ -525,6 +524,7 @@ double SHAKE256(string message)
     wcin.ignore();
     if (osType == 2)
         wcin.ignore();
+    wcout << "Digest size: " << digLenght << endl;
 
     string digest;
     int start_s = clock();
